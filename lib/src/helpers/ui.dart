@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 Widget addClick(Widget child, VoidCallback handler) {
@@ -26,6 +28,11 @@ String timestamp(DateTime oldDate) {
     timestamp = '${difference.inDays}D';
   }
   return timestamp;
+}
+
+cbrt(x){
+  // ensure negative numbers remain negative:
+  return x < 0 ? -pow(-x, 1/3) : pow(x, 1/3);
 }
 
 int _kWordLength = 500;

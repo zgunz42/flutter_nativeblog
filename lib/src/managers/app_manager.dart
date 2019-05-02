@@ -17,6 +17,8 @@ abstract class AppManager {
 
   RxCommand<void, List<Post>> updateArticlesCmd;
 
+  RxCommand<void, List<youtube.SearchResultSnippet>> updateVideosCmd;
+
   RxCommand<String, List<Comment>> displayPostCommentCmd;
 
   // RxCommand<String,
@@ -25,7 +27,7 @@ abstract class AppManager {
 }
 
 class AppManagerImpl implements AppManager {
-  AppManagerImpl({String blogId = '7342017194742683056'}) {
+  AppManagerImpl({String blogId = '7342017194742683056', String channelId = 'UCepgnl-TtJ8DurHdC6EE22w'}) {
     BloggerApi blog = BloggerApi(BloggerClient());
     youtube.YoutubeApi video = youtube.YoutubeApi(BloggerClient());
     Map<int, PostList> pages = <int, PostList>{};
@@ -52,6 +54,12 @@ class AppManagerImpl implements AppManager {
       comments[postId].add(postComment);
 
       return postComment.items;
+    });
+
+
+    updateVideosCmd = RxCommand.createAsyncNoParam(() async {
+      youtube.SearchListResponse searchResult = await video.search.list('snippet', channelId: channelId);
+      return searchResult.items.map((s) => s.snippet);
     });
 
     updateArticlesCmd = RxCommand.createAsyncNoParam(() async {
@@ -113,4 +121,7 @@ class AppManagerImpl implements AppManager {
 
   @override
   RxCommand<String, List<Comment>> displayPostCommentCmd;
+
+  @override
+  RxCommand<void, List<youtube.SearchResultSnippet>> updateVideosCmd;
 }

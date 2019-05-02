@@ -7,9 +7,9 @@ ThemeData nativeBlogTheme = _buildNativeBlogTheme();
 ThemeData _buildNativeBlogTheme() {
   final baseTheme = ThemeData.light();
   final SystemUiOverlayStyle uiStyle = SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark,
+      statusBarColor: colors.primaryColor,
+      // statusBarIconBrightness: Brightness.light,
+      // statusBarBrightness: Brightness.dark,
       systemNavigationBarDividerColor: Colors.black26);
 
   SystemChrome.setSystemUIOverlayStyle(uiStyle);

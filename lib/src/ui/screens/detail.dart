@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:googleapis/blogger/v3.dart';
@@ -12,6 +14,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:nativeblog/src/ui/routers.dart';
 import 'package:share/share.dart';
 
+
 class Detail extends StatelessWidget {
   Detail(this.article, {this.category}) : assert(article != null);
 
@@ -23,177 +26,190 @@ class Detail extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final readindTime = estimateReadingTime(article.content);
-    SystemChrome.setSystemUIOverlayStyle(
-        SystemChrome.latestStyle.copyWith(statusBarColor: Colors.transparent));
-    return Scaffold(body: LayoutBuilder(builder: (context, constrain) {
-      return CustomScrollView(
-        slivers: <Widget>[
-          SliverAppBar(
-            primary: true,
-            expandedHeight: _kAppBarHeight,
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.none,
-              background: Hero(
-                tag: 'thumbnail_${article.id}',
-                transitionOnUserGestures: true,
-                child: ImagePlaceholder(
-                  article.images?.first?.url,
-                  height: _kAppBarHeight,
+    SystemChrome.setEnabledSystemUIOverlays(
+        [SystemUiOverlay.bottom, SystemUiOverlay.top]);
+    return Scaffold(
+        backgroundColor: Colors.white,
+        body: LayoutBuilder(builder: (context, constrain) {
+          return CustomScrollView(
+            slivers: <Widget>[
+              SliverAppBar(
+                primary: true,
+                pinned: true,
+                expandedHeight: _kAppBarHeight,
+                flexibleSpace: FlexibleSpaceBar(
+                  collapseMode: CollapseMode.none,
+                  background: Hero(
+                    tag: 'thumbnail_${article.id}',
+                    transitionOnUserGestures: true,
+                    child: ImagePlaceholder(
+                      article.images?.first?.url,
+                      height: _kAppBarHeight,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Container(
-                margin: EdgeInsets.all(16.0),
-                child: Column(
-                  children: <Widget>[
-                    Text(article.title,
-                        style: textTheme.title
-                            .copyWith(fontWeight: FontWeight.bold)),
-                    // article meta
-                    Container(
-                      margin: EdgeInsets.only(top: 16),
-                      // height: 200,
-                      child: Row(
-                        // crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: <Widget>[
-                          Container(
-                            width: 12,
-                          ),
-                          ClipOval(
-                            child: Container(
-                              color: Colors.grey.shade200,
-                              child: ImagePlaceholder(
-                                  'https:${article.author.image?.url}',
-                                  width: 60,
-                                  height: 60),
-                            ),
-                          ),
-                          Container(
-                            width: 12,
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+              SliverToBoxAdapter(
+                child: Container(
+                    margin: EdgeInsets.all(16.0),
+                    child: Column(
+                      children: <Widget>[
+                        Text(article.title,
+                            style: textTheme.title
+                                .copyWith(fontWeight: FontWeight.bold)),
+                        // article meta
+                        Container(
+                          margin: EdgeInsets.only(top: 16),
+                          // height: 200,
+                          child: Row(
+                            // crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: <Widget>[
-                              RichText(
-                                  text: TextSpan(
-                                      children: [
-                                    TextSpan(
-                                        text: article.author.displayName,
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .primaryColor)),
-                                    TextSpan(text: ' . '),
-                                    TextSpan(
-                                        text: timeago.format(article.published))
-                                  ],
-                                      style: textTheme.subhead.copyWith(
-                                          fontWeight: FontWeight.w500))),
                               Container(
-                                height: 8.0,
+                                width: 12,
                               ),
-                              Text('${readindTime.inMinutes} menit mebaca')
+                              ClipOval(
+                                child: Container(
+                                  color: Colors.grey.shade200,
+                                  child: ImagePlaceholder(
+                                      'https:${article.author.image?.url}',
+                                      width: 60,
+                                      height: 60),
+                                ),
+                              ),
+                              Container(
+                                width: 12,
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  RichText(
+                                      text: TextSpan(
+                                          children: [
+                                        TextSpan(
+                                            text: article.author.displayName,
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .primaryColor)),
+                                        TextSpan(text: ' . '),
+                                        TextSpan(
+                                            text: timeago
+                                                .format(article.published))
+                                      ],
+                                          style: textTheme.subhead.copyWith(
+                                              fontWeight: FontWeight.w500))),
+                                  Container(
+                                    height: 8.0,
+                                  ),
+                                  Text('${readindTime.inMinutes} menit mebaca')
+                                ],
+                              ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      height: 16.0,
-                    ),
-                    DefaultTextStyle(
-                      style: TextStyle(color: Colors.white),
-                      child: Row(
-                        children: List.generate(article.labels.length, (index) {
-                          return Container(
-                            padding: EdgeInsets.all(4.0),
-                            child: Container(
-                              padding: EdgeInsets.all(2.0),
-                              child: Text(
-                                article.labels[index],
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 11),
-                              ),
-                              color:
-                                  Theme.of(context).primaryColor.withAlpha(60),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
-                )),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Html(
-                data: article.content,
-                onLinkTap: (url) => appRouter.navigateTo(
-                    context, '${appRouter.launchUrlPath}?url=$url'),
-                defaultTextStyle:
-                    TextStyle(fontSize: 15.0, letterSpacing: 0.75),
-                useRichText: true,
-                linkStyle: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.w600),
-                customRender: (node, child) {
-                  dom.Element el = node;
-                  print('custom element');
-                  print(el.localName);
-                  if (el.localName == 'img') {
-                    return ImagePlaceholder(el.attributes['src']);
-                  }
-                  if (el.localName == 'code') {
-                    return Scrollable(
-                      axisDirection: AxisDirection.left,
-                      viewportBuilder: (context, offset) => Container(
-                            color: Colors.black,
-                            child: DefaultTextStyle(
-                              style: TextStyle(color: Colors.white),
-                              child: Column(
-                                children: child,
-                              ),
-                            ),
+                        ),
+                        Container(
+                          height: 16.0,
+                        ),
+                        DefaultTextStyle(
+                          style: TextStyle(color: Colors.white),
+                          child: Row(
+                            children:
+                                List.generate(article.labels.length, (index) {
+                              return Container(
+                                padding: EdgeInsets.all(4.0),
+                                child: Container(
+                                  padding: EdgeInsets.all(2.0),
+                                  child: Text(
+                                    article.labels[index],
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 11),
+                                  ),
+                                  color: Theme.of(context)
+                                      .primaryColor
+                                      .withAlpha(60),
+                                ),
+                              );
+                            }).toList(),
                           ),
-                    );
-                  }
-                },
+                        ),
+                      ],
+                    )),
               ),
-            ),
-          ),
-          // comments area
-          SliverFillRemaining(
-            child: Container(
-              child: RxCommandBuilder<List<Comment>>(
-                commandResults:
-                    sl.get<AppManager>().displayPostCommentCmd.results,
-                busyBuilder: (context) {
-                  return Center(child: Text('mengambil komentar'));
-                },
-                placeHolderBuilder: (context) {
-                  return Center(child: Text('menyiapkan komentar'));
-                },
-                dataBuilder: (context, comments) {
-                  ListView.builder(
-                    itemBuilder: (context, index) {
-                      final comment = comments[index];
-                      return ListTile(
-                        title: Text(comment.content),
-                        subtitle: Text(comment.published.toIso8601String()),
-                      );
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Html(
+                    data: article.content,
+                    onLinkTap: (url) {
+                      String uri = Uri.encodeQueryComponent(url);
+                      appRouter.navigateTo(
+                          context, "/open_url?url=$uri");
                     },
-                    itemCount: comments.length,
-                  );
-                },
+                    defaultTextStyle:
+                        TextStyle(fontSize: 15.0, letterSpacing: 0.75),
+                    useRichText: true,
+                    linkStyle: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.w600),
+                    customRender: (node, child) {
+                      dom.Element el = node;
+                      print('custom element');
+                      print(el.localName);
+                      if (el.localName == 'img') {
+                        return ImagePlaceholder(el.attributes['src']);
+                      }
+                      if (el.localName == 'code') {
+                        return Scrollable(
+                          axisDirection: AxisDirection.left,
+                          viewportBuilder: (context, offset) => Container(
+                                color: Colors.black,
+                                child: DefaultTextStyle(
+                                  style: TextStyle(color: Colors.white),
+                                  child: Column(
+                                    children: child,
+                                  ),
+                                ),
+                              ),
+                        );
+                      }
+                    },
+                  ),
+                ),
               ),
-            ),
-          )
-        ],
-      );
-    }));
+              // comments area
+              // buildCommentBox()
+            ],
+          );
+        }));
+  }
+
+  SliverFillRemaining buildCommentBox() {
+    return SliverFillRemaining(
+              child: Container(
+                child: RxCommandBuilder<List<Comment>>(
+                  commandResults:
+                      sl.get<AppManager>().displayPostCommentCmd.results,
+                  busyBuilder: (context) {
+                    return Center(child: Text('mengambil komentar'));
+                  },
+                  placeHolderBuilder: (context) {
+                    return Center(child: Text('menyiapkan komentar'));
+                  },
+                  dataBuilder: (context, comments) {
+                    ListView.builder(
+                      itemBuilder: (context, index) {
+                        final comment = comments[index];
+                        return ListTile(
+                          title: Text(comment.content),
+                          subtitle: Text(comment.published.toIso8601String()),
+                        );
+                      },
+                      itemCount: comments.length,
+                    );
+                  },
+                ),
+              ),
+            );
   }
 }
 

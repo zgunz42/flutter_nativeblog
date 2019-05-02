@@ -25,17 +25,17 @@ class AppRouter extends Router with NavigatorObserver {
 
   void _initRouters() {
     notFoundHandler = Handler(handlerFunc: (context, query) {
-      print('router not found');
+      print(query);
       Scaffold.of(context)
           .showSnackBar(SnackBar(content: Text('Router NotFound')));
-    });
+    }, type: HandlerType.function);
 
-    define(launchUrlPath,
+    define('$launchUrlPath',
         handler: Handler(
             handlerFunc: (context, query) {
-              final url = query['url']?.first;
+              final url = query['url']?.first ?? 'https://kangmicin.com';
               launch(
-                '$url',
+                Uri.decodeQueryComponent(url),
                 option: CustomTabsOption(
                   enableDefaultShare: true,
                   enableUrlBarHiding: true,
@@ -74,7 +74,7 @@ class AppRouter extends Router with NavigatorObserver {
                   return Detail(post);
                 },
               );
-            }));
+            }), transitionType: TransitionType.inFromLeft);
 
     define(rootPath, handler: Handler(handlerFunc: (context, query) {
       return Browse();

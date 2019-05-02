@@ -92,15 +92,20 @@ class PostCard extends StatelessWidget {
       );
     }
 
-    return _template(
-        title: Text(
-          article.title,
-          style: textTheme.subhead,
-        ),
-        image: gallery,
-        info: Text(article.author.displayName, style: textTheme.caption),
-        subInfo: Text(timeago.format(article.published, locale: 'id'),
-            style: textTheme.caption));
+    return InkWell(
+      onTap: () {
+        appRouter.navigate(context, path: appRouter.detailPath, t: article);
+      },
+      child: _template(
+          title: Text(
+            article.title,
+            style: textTheme.subhead,
+          ),
+          image: gallery,
+          info: Text(article.author.displayName, style: textTheme.caption),
+          subInfo: Text(timeago.format(article.published, locale: 'id'),
+              style: textTheme.caption)),
+    );
   }
 }
 

@@ -1,10 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:googleapis/blogger/v3.dart';
 import 'package:nativeblog/src/managers/app_manager.dart';
 import 'package:nativeblog/src/service_locator.dart';
-import 'package:nativeblog/src/ui/assets.dart';
+import 'package:nativeblog/src/ui/icons.dart';
 import 'package:nativeblog/src/ui/components/lazy_list.dart';
 import 'package:nativeblog/src/ui/components/post_tile.dart';
 
@@ -88,20 +86,24 @@ class _BrowseState extends State<Browse> with TickerProviderStateMixin {
       ),
       body: SafeArea(
           child: LazyList(
-        initPageNumber: 1,
-        commandResults: sl.get<AppManager>().updateArticlesCmd.results,
-        dataBuilder: (context, data, type) {
-          return type == ListItemType.list ? PostTile(article: data) : PostCard(article: data);
-        },
-        shimmerBuilder: (context, type) {
-          return type == ListItemType.list ? PostTile.shimmer : PostCard.shimmer;
-        },
-        onMore: (page) async => sl.get<AppManager>().pageArticleCmd(page),
-        onRefresh: () async => sl.get<AppManager>().prefetchCmd(false), 
-        itemTypeLayout: (index) {
-          return index % 4 != 2 ? ListItemType.list : ListItemType.card;
-        },
-      )),
+            initPageNumber: 1,
+            commandResults: sl.get<AppManager>().updateArticlesCmd.results,
+            dataBuilder: (context, data, type) {
+              return type == ListItemType.list
+                  ? PostTile(article: data)
+                  : PostCard(article: data);
+            },
+            shimmerBuilder: (context, type) {
+              return type == ListItemType.list
+                  ? PostTile.shimmer
+                  : PostCard.shimmer;
+            },
+            onMore: (page) async => sl.get<AppManager>().pageArticleCmd(page),
+            onRefresh: () async => sl.get<AppManager>().prefetchCmd(false),
+            itemTypeLayout: (index) {
+              return index % 4 != 2 ? ListItemType.list : ListItemType.card;
+            },
+          )),
       bottomNavigationBar: BottomNavigationBar(
           fixedColor: Theme.of(context).primaryColor,
           type: BottomNavigationBarType.fixed,
@@ -113,7 +115,7 @@ class _BrowseState extends State<Browse> with TickerProviderStateMixin {
             BottomNavigationBarItem(
                 icon: Icon(NativeBlogIcons.earth), title: Text('Update')),
             BottomNavigationBarItem(
-                icon: Icon(NativeBlogIcons.inbox), title: Text('Info')),
+                icon: Icon(NativeBlogIcons.bullhorn), title: Text('Info')),
             BottomNavigationBarItem(
                 icon: Icon(NativeBlogIcons.user), title: Text('Me'))
           ]),
@@ -162,15 +164,18 @@ class PostSearchDelegated extends SearchDelegate<Post> {
 
   @override
   Widget buildResults(BuildContext context) {
-    return Center(child: Text('No result'),);
+    return Center(
+      child: Text('No result'),
+    );
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
     return _SuggestionList(
       query: 'bisa',
-      onSelected: (query){},
-      suggestions: ['bisa coba', 'bisa saja','bisa pasti', 'bisa'],);
+      onSelected: (query) {},
+      suggestions: ['bisa coba', 'bisa saja', 'bisa pasti', 'bisa'],
+    );
   }
 }
 
@@ -193,7 +198,8 @@ class _SuggestionList extends StatelessWidget {
           title: RichText(
             text: TextSpan(
               text: suggestion.substring(0, query.length),
-              style: theme.textTheme.subhead.copyWith(fontWeight: FontWeight.bold),
+              style:
+                  theme.textTheme.subhead.copyWith(fontWeight: FontWeight.bold),
               children: <TextSpan>[
                 TextSpan(
                   text: suggestion.substring(query.length),
