@@ -4,6 +4,7 @@ import 'package:nativeblog/src/ui/components/squircle.dart';
 import 'package:nativeblog/src/ui/icons.dart';
 import 'package:rx_command/rx_command.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+// import 'package:flutter_native_admob/flutter_native_admob.dart';
 import 'package:shimmer/shimmer.dart';
 
 typedef ScrollPoint = int Function(Offset percent);
@@ -64,6 +65,8 @@ class _LazyListState<T> extends State<LazyList>
 
   Duration updateDelay;
 
+  // MobileAd ads;
+
   bool inFetch;
 
   @override
@@ -101,7 +104,7 @@ class _LazyListState<T> extends State<LazyList>
       // user stop from scrolling
       // if (scrollCntrl.position.activity.isScrolling != true) {}
     });
-
+    // displayBannerAds().load();
     super.initState();
   }
 
@@ -115,6 +118,7 @@ class _LazyListState<T> extends State<LazyList>
   dispose() {
     super.dispose();
     animCntrl.dispose();
+    // ads.dispose();
     subscription?.cancel();
   }
 
@@ -122,6 +126,9 @@ class _LazyListState<T> extends State<LazyList>
   void didUpdateWidget(oldWidget) {
     super.didUpdateWidget(oldWidget);
     subscription?.cancel();
+    // ads.isLoaded().then((hasLoad) {
+    //   if (!hasLoad) ads.load();
+    // });
 
     subscription = commandResults.listen((result) {
       setState(() {
@@ -134,50 +141,76 @@ class _LazyListState<T> extends State<LazyList>
   Widget buildCrauselItem(String title, String imageUrl, VoidCallback onTap) {
     return ClipRRect(
       borderRadius: new BorderRadius.circular(20.0),
-          child: Container(
+      child: Container(
         margin: EdgeInsets.all(4),
         decoration: BoxDecoration(
-          image: DecorationImage(image: AssetImage(imageUrl), fit: BoxFit.cover)
+            image: DecorationImage(
+                image: AssetImage(imageUrl), fit: BoxFit.cover)),
+        child: Stack(
+          children: <Widget>[
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [Colors.black.withAlpha(100), Colors.transparent]),
+              ),
+            ),
+            Positioned(
+              bottom: 8,
+              left: 16,
+              right: 30,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(title,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600)),
+                  Container(
+                    height: 8,
+                  ),
+                  OutlineButton(
+                    color: Colors.white,
+                    borderSide: BorderSide(
+                      color: Colors.white,
+                    ),
+                    child: Text(
+                      'SEE MORE',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: onTap,
+                  )
+                ],
+              ),
+            )
+          ],
         ),
-        child: Stack(children: <Widget>[
-          Container(
-            decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [Colors.black.withAlpha(100), Colors.transparent]),
-            ),
-          ),
-          Positioned(
-            bottom: 8,
-            left: 16,
-            right: 30,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(title, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-                Container(height: 8,),
-                OutlineButton(
-                  color: Colors.white,
-                  borderSide: BorderSide(color: Colors.white,),
-                  child: Text('SEE MORE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
-                  onPressed: onTap,
-                )
-                
-              ],
-            ),
-          )
-        ],),
       ),
     );
   }
 
   Widget _buildCrausel() {
-    return CarouselSlider(items: <Widget>[
-      buildCrauselItem('Best Blogging Android Apps', 'assets/images/vscode.png', (){}),
-      buildCrauselItem('Master The Art Of Blogging With These 8 Tips', 'assets/images/escape-shortlink.png', (){}),
-      buildCrauselItem('Knowing These 8 Secrets Will Make Your Blogging Look Amazing', 'assets/images/settings-proxy-ubuntu.jpg', (){}),
-      buildCrauselItem('The Truth About Blogging In 3 Little Words', 'assets/images/hugo-blogger.png', (){}),
-      buildCrauselItem('8 Reasons Blogging Is A Waste Of Time', 'assets/images/slow-pc.png', (){}),
-    ], enableInfiniteScroll: true, autoPlay: true, enlargeCenterPage: true,);
+    return CarouselSlider(
+      items: <Widget>[
+        buildCrauselItem(
+            'Best Blogging Android Apps', 'assets/images/vscode.png', () {}),
+        buildCrauselItem('Master The Art Of Blogging With These 8 Tips',
+            'assets/images/escape-shortlink.png', () {}),
+        buildCrauselItem(
+            'Knowing These 8 Secrets Will Make Your Blogging Look Amazing',
+            'assets/images/settings-proxy-ubuntu.jpg',
+            () {}),
+        buildCrauselItem('The Truth About Blogging In 3 Little Words',
+            'assets/images/hugo-blogger.png', () {}),
+        buildCrauselItem('8 Reasons Blogging Is A Waste Of Time',
+            'assets/images/slow-pc.png', () {}),
+      ],
+      enableInfiniteScroll: true,
+      autoPlay: true,
+      enlargeCenterPage: true,
+    );
   }
 
   Widget _buildToolList() {
@@ -227,6 +260,8 @@ class _LazyListState<T> extends State<LazyList>
       ));
     }
 
+    // displayBannerAds().show();
+
     return Container(
       color: Colors.white,
       child: RefreshIndicator(
@@ -234,9 +269,7 @@ class _LazyListState<T> extends State<LazyList>
         child: CustomScrollView(
           controller: scrollCntrl,
           slivers: <Widget>[
-            SliverToBoxAdapter(
-              child: _buildCrausel()
-            ),
+            SliverToBoxAdapter(child: _buildCrausel()),
             SliverToBoxAdapter(
               child: Container(
                 margin: EdgeInsets.fromLTRB(16.0, 16.0, 8.0, 8.0),
@@ -244,15 +277,15 @@ class _LazyListState<T> extends State<LazyList>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(
-                      'Favorite Menu',
-                      style: Theme.of(context).textTheme.title.copyWith(fontSize: 15)
-                    ),
+                    Text('Favorite Menu',
+                        style: Theme.of(context)
+                            .textTheme
+                            .title
+                            .copyWith(fontSize: 15)),
                     Container(height: 4),
-                    Text(
-                      'Menu yang sering kamu gunakan',
-                      style: Theme.of(context).textTheme.caption.copyWith(color: Colors.grey.shade400, fontSize: 11)
-                    ),
+                    Text('Menu yang sering kamu gunakan',
+                        style: Theme.of(context).textTheme.caption.copyWith(
+                            color: Colors.grey.shade400, fontSize: 11)),
                   ],
                 ),
               ),
@@ -288,6 +321,13 @@ class _LazyListState<T> extends State<LazyList>
           height: 2.0,
         ));
       }
+      // if (index % 5 == 0) {
+      //   content.add(NativeAdmobBannerView(
+      //     adUnitID: "ca-app-pub-2758740163872909/7136339246",
+      //     style: BannerStyle.light,
+      //     showMedia: false
+      //   ));
+      // }
       content.add(widget.dataBuilder(
           context, posts[index], widget.itemTypeLayout(index)));
     }

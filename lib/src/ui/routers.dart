@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis/blogger/v3.dart';
@@ -7,14 +8,17 @@ import 'package:nativeblog/src/ui/screens/browse.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:nativeblog/src/ui/screens/detail.dart';
 import 'package:rx_widgets/rx_widgets.dart';
+import 'package:nativeblog/src/ui/ads.dart' as ads;
 
 class AppRouter extends Router with NavigatorObserver {
   String rootPath = "/";
   String detailPath = "/details";
   String launchUrlPath = "/open_url";
+  FirebaseAnalytics analytics;
   dynamic _cached;
 
   AppRouter() {
+    analytics = FirebaseAnalytics();
     _initRouters();
   }
 
@@ -23,9 +27,15 @@ class AppRouter extends Router with NavigatorObserver {
     navigateTo(buildContext, path);
   }
 
+  @override
+  Future navigateTo(BuildContext context, String path, {bool replace = false, bool clearStack = false, TransitionType transition, Duration transitionDuration = const Duration(milliseconds: 250), transitionBuilder}) {
+    analytics.setCurrentScreen(screenName: path);
+    ads.bottomAds..load()..dispose();
+    return super.navigateTo(context, path, replace: replace, clearStack: clearStack, transition: transition, transitionDuration: transitionDuration, transitionBuilder: transitionBuilder);
+  }
+
   void _initRouters() {
     notFoundHandler = Handler(handlerFunc: (context, query) {
-      print(query);
       Scaffold.of(context)
           .showSnackBar(SnackBar(content: Text('Router NotFound')));
     }, type: HandlerType.function);
@@ -33,9 +43,10 @@ class AppRouter extends Router with NavigatorObserver {
     define('$launchUrlPath',
         handler: Handler(
             handlerFunc: (context, query) {
-              final url = query['url']?.first ?? 'https://kangmicin.com';
+              final url = Uri.decodeQueryComponent(query['url']?.first);
+              analytics.logEvent(name: 'open_internal_browser', parameters: {'url': url});
               launch(
-                Uri.decodeQueryComponent(url),
+                url,
                 option: CustomTabsOption(
                   enableDefaultShare: true,
                   enableUrlBarHiding: true,
@@ -57,6 +68,8 @@ class AppRouter extends Router with NavigatorObserver {
                 return Detail(_cached);
               }
 
+              ads.fullAds..load()..show();
+
               sl.get<AppManager>().displayPostCmd(postId);
               return RxLoader<Post>(
                 commandResults: sl.get<AppManager>().displayPostCmd.results,
@@ -77,6 +90,7 @@ class AppRouter extends Router with NavigatorObserver {
             }), transitionType: TransitionType.inFromLeft);
 
     define(rootPath, handler: Handler(handlerFunc: (context, query) {
+      analytics.logAppOpen();
       return Browse();
     }));
   }

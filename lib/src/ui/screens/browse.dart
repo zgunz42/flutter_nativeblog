@@ -16,7 +16,7 @@ class Browse extends StatefulWidget {
   _BrowseState createState() => _BrowseState();
 }
 
-class _BrowseState extends State<Browse> with TickerProviderStateMixin {
+class _BrowseState extends State<Browse> with TickerProviderStateMixin, WidgetsBindingObserver {
   TabController tabCntrl;
 
   Offset hideOffset;
@@ -24,14 +24,21 @@ class _BrowseState extends State<Browse> with TickerProviderStateMixin {
   @override
   dispose() {
     super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     tabCntrl.dispose();
   }
 
   @override
   void initState() {
     tabCntrl = TabController(vsync: this, length: 7);
-
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+
+    super.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -41,13 +48,10 @@ class _BrowseState extends State<Browse> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    // final ThemeData theme = Theme.of(context);
+    final ThemeData theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: FlutterLogo(
-          style: FlutterLogoStyle.horizontal,
-          size: 120,
-        ),
+        title: Title(title: 'Nativeblog', child: Text('NativeBlog', style: theme.textTheme.title.copyWith(fontSize: 23.0),), color: Colors.white,),
         actions: <Widget>[
           IconButton(
             icon: Icon(NativeBlogIcons.magnifier),

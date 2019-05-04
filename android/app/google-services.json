@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "54236040646",
+    "firebase_url": "https://nativeblog-app.firebaseio.com",
+    "project_id": "nativeblog-app",
+    "storage_bucket": "nativeblog-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:54236040646:android:e43af60a6f581dd2",
+        "android_client_info": {
+          "package_name": "com.example.nativeblog"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "54236040646-lv4kuu81377jj7kkftm10768g350a9oi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nativeblog",
+            "certificate_hash": "df802e94840bf170fcc1d79e34d8b3b681efad26"
+          }
+        },
+        {
+          "client_id": "54236040646-teoh2sc6pf7pqal499km8iapjs6dm8dr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFBP1DAIBTEK0EvGjcNwjK0gCV_NZkxZg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "54236040646-teoh2sc6pf7pqal499km8iapjs6dm8dr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-2758740163872909~4629240182"
+    }
+  ],
+  "configuration_version": "1"
+}
