@@ -36,7 +36,7 @@ class _DetailState extends State<Detail> {
 
   @override
   void dispose() {
-    ads.bottomAds?.dispose();
+    // ads.bottomAds?.dispose();
     super.dispose();
   }
 

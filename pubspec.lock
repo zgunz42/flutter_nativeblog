@@ -471,6 +471,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.4"
+  onesignal:
+    dependency: "direct main"
+    description:
+      name: onesignal
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.0"
   ozzie:
     dependency: "direct dev"
     description:

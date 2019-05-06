@@ -28,23 +28,36 @@ class AppRouter extends Router with NavigatorObserver {
   }
 
   @override
-  Future navigateTo(BuildContext context, String path, {bool replace = false, bool clearStack = false, TransitionType transition, Duration transitionDuration = const Duration(milliseconds: 250), transitionBuilder}) {
+  Future navigateTo(BuildContext context, String path,
+      {bool replace = false,
+      bool clearStack = false,
+      TransitionType transition,
+      Duration transitionDuration = const Duration(milliseconds: 250),
+      transitionBuilder}) {
     analytics.setCurrentScreen(screenName: path);
-    ads.bottomAds..load()..dispose();
-    return super.navigateTo(context, path, replace: replace, clearStack: clearStack, transition: transition, transitionDuration: transitionDuration, transitionBuilder: transitionBuilder);
+    // ads.bottomAds?.dispose();
+    return super.navigateTo(context, path,
+        replace: replace,
+        clearStack: clearStack,
+        transition: transition,
+        transitionDuration: transitionDuration,
+        transitionBuilder: transitionBuilder);
   }
 
   void _initRouters() {
-    notFoundHandler = Handler(handlerFunc: (context, query) {
-      Scaffold.of(context)
-          .showSnackBar(SnackBar(content: Text('Router NotFound')));
-    }, type: HandlerType.function);
+    notFoundHandler = Handler(
+        handlerFunc: (context, query) {
+          Scaffold.of(context)
+              .showSnackBar(SnackBar(content: Text('Router NotFound')));
+        },
+        type: HandlerType.function);
 
     define('$launchUrlPath',
         handler: Handler(
             handlerFunc: (context, query) {
               final url = Uri.decodeQueryComponent(query['url']?.first);
-              analytics.logEvent(name: 'open_internal_browser', parameters: {'url': url});
+              analytics.logEvent(
+                  name: 'open_internal_browser', parameters: {'url': url});
               launch(
                 url,
                 option: CustomTabsOption(
@@ -57,37 +70,39 @@ class AppRouter extends Router with NavigatorObserver {
             },
             type: HandlerType.function));
     define(detailPath,
-        handler: ObjectOrParamsHandler<Post>(
-            handlerObj: (context, query, post) {
+        handler:
+            ObjectOrParamsHandler<Post>(handlerObj: (context, query, post) {
+          return Detail(post);
+        }, handlerFunc: (context, query) {
+          final postId = query['postId']?.first;
+          print(_cached.id == postId);
+          if (_cached != null) {
+            return Detail(_cached);
+          }
+
+          ads.fullAds
+            ..load()
+            ..show();
+
+          sl.get<AppManager>().displayPostCmd(postId);
+          return RxLoader<Post>(
+            commandResults: sl.get<AppManager>().displayPostCmd.results,
+            placeHolderBuilder: (context) {
+              final textTheme = Theme.of(context).textTheme;
+              return Scaffold(
+                body: Center(
+                    child: Text(
+                  'Mengambil Artikel..',
+                  style: textTheme.title,
+                )),
+              );
+            },
+            dataBuilder: (context, post) {
               return Detail(post);
             },
-            handlerFunc: (context, query) {
-              final postId = query['postId']?.first;
-              print(_cached.id == postId);
-              if(_cached != null){
-                return Detail(_cached);
-              }
-
-              ads.fullAds..load()..show();
-
-              sl.get<AppManager>().displayPostCmd(postId);
-              return RxLoader<Post>(
-                commandResults: sl.get<AppManager>().displayPostCmd.results,
-                placeHolderBuilder: (context) {
-                  final textTheme = Theme.of(context).textTheme;
-                  return Scaffold(
-                    body: Center(
-                        child: Text(
-                      'Mengambil Artikel..',
-                      style: textTheme.title,
-                    )),
-                  );
-                },
-                dataBuilder: (context, post) {
-                  return Detail(post);
-                },
-              );
-            }), transitionType: TransitionType.inFromLeft);
+          );
+        }),
+        transitionType: TransitionType.inFromLeft);
 
     define(rootPath, handler: Handler(handlerFunc: (context, query) {
       analytics.logAppOpen();
