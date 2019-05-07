@@ -8,6 +8,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.8+1"
+  admob_flutter:
+    dependency: "direct main"
+    description:
+      name: admob_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   analyzer:
     dependency: transitive
     description:
@@ -220,13 +227,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.0.7"
-  firebase_admob:
-    dependency: "direct main"
-    description:
-      name: firebase_admob
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.8.0+4"
   firebase_analytics:
     dependency: "direct main"
     description:

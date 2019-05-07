@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:nativeblog/src/ui/components/ads.dart';
 import 'package:nativeblog/src/ui/components/squircle.dart';
 import 'package:nativeblog/src/ui/icons.dart';
 import 'package:rx_command/rx_command.dart';
@@ -25,6 +26,7 @@ class LazyList<T> extends StatefulWidget {
       @required this.shimmerBuilder,
       @required this.onMore,
       @required this.onRefresh,
+      this.primary = false,
       this.itemTypeLayout,
       this.touchPoint,
       this.delay})
@@ -38,6 +40,7 @@ class LazyList<T> extends StatefulWidget {
   final LayoutTypeOf<T> itemTypeLayout;
   final ListTypeBuilder shimmerBuilder;
   final Duration delay;
+  final bool primary;
 
   @override
   _LazyListState createState() => _LazyListState<T>();
@@ -242,6 +245,7 @@ class _LazyListState<T> extends State<LazyList>
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final List<Widget> content = <Widget>[];
+    final List<Widget> slivers = <Widget>[];
     Widget action;
 
     if (lastReceivedItem.hasData && lastReceivedItem.data.isNotEmpty) {
@@ -262,52 +266,51 @@ class _LazyListState<T> extends State<LazyList>
 
     // displayBannerAds().show();
 
+    if (widget.primary) {
+      slivers.addAll([
+        SliverToBoxAdapter(child: _buildCrausel()),
+        SliverToBoxAdapter(
+          child: Container(
+            margin: EdgeInsets.fromLTRB(16.0, 16.0, 8.0, 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('Favorite Menu',
+                    style: Theme.of(context)
+                        .textTheme
+                        .title
+                        .copyWith(fontSize: 15)),
+                Container(height: 4),
+                Text('Menu yang sering kamu gunakan',
+                    style: Theme.of(context)
+                        .textTheme
+                        .caption
+                        .copyWith(color: Colors.grey.shade400, fontSize: 11)),
+              ],
+            ),
+          ),
+        ),
+        _buildToolList(),
+      ]);
+    }
+
+    slivers.addAll([
+      SliverList(
+        delegate: SliverChildListDelegate(content),
+      ),
+      SliverToBoxAdapter(
+        child: action,
+      )
+    ]);
+
     return Container(
       color: Colors.white,
       child: RefreshIndicator(
         onRefresh: widget.onRefresh,
         child: CustomScrollView(
           controller: scrollCntrl,
-          slivers: <Widget>[
-            SliverToBoxAdapter(child: _buildCrausel()),
-            SliverToBoxAdapter(
-              child: Container(
-                margin: EdgeInsets.fromLTRB(16.0, 16.0, 8.0, 8.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text('Favorite Menu',
-                        style: Theme.of(context)
-                            .textTheme
-                            .title
-                            .copyWith(fontSize: 15)),
-                    Container(height: 4),
-                    Text('Menu yang sering kamu gunakan',
-                        style: Theme.of(context).textTheme.caption.copyWith(
-                            color: Colors.grey.shade400, fontSize: 11)),
-                  ],
-                ),
-              ),
-            ),
-            _buildToolList(),
-            SliverToBoxAdapter(
-              child: Container(
-                height: 25,
-                decoration: BoxDecoration(
-                    color: theme.scaffoldBackgroundColor,
-                    border: Border(
-                      top: BorderSide(width: 2, color: Colors.grey.shade100),
-                    )),
-              ),
-            ),
-            SliverList(
-              delegate: SliverChildListDelegate(content),
-            ),
-            SliverToBoxAdapter(
-              child: action,
-            )
-          ],
+          slivers: slivers,
         ),
       ),
     );
@@ -321,13 +324,9 @@ class _LazyListState<T> extends State<LazyList>
           height: 2.0,
         ));
       }
-      // if (index % 5 == 0) {
-      //   content.add(NativeAdmobBannerView(
-      //     adUnitID: "ca-app-pub-2758740163872909/7136339246",
-      //     style: BannerStyle.light,
-      //     showMedia: false
-      //   ));
-      // }
+      if (index != 0 && index % 5 == 0) {
+        content.add(Ads.random());
+      }
       content.add(widget.dataBuilder(
           context, posts[index], widget.itemTypeLayout(index)));
     }

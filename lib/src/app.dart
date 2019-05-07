@@ -1,4 +1,5 @@
-import 'package:firebase_admob/firebase_admob.dart';
+// import 'package:firebase_admob/firebase_admob.dart';
+import 'package:admob_flutter/admob_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:nativeblog/src/ui/routers.dart';
 import 'package:nativeblog/src/ui/theme/theme.dart';
@@ -59,7 +60,8 @@ class NativeBlogApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final myAppId = 'ca-app-pub-2758740163872909~4629240182';
     FirebaseAnalytics analytics = FirebaseAnalytics();
-    FirebaseAdMob.instance.initialize(appId: myAppId);
+    // FirebaseAdMob.instance.initialize(appId: myAppId);
+    Admob.initialize(myAppId);
     _requestForNotification();
     return MaterialApp(
       title: 'Native Blog Info',

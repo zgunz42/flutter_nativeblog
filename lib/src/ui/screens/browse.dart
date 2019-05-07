@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/blogger/v3.dart';
+import 'package:googleapis/youtube/v3.dart';
 import 'package:nativeblog/src/managers/app_manager.dart';
 import 'package:nativeblog/src/service_locator.dart';
+import 'package:nativeblog/src/ui/components/search.dart';
+import 'package:nativeblog/src/ui/components/video_tile.dart';
 import 'package:nativeblog/src/ui/icons.dart';
 import 'package:nativeblog/src/ui/components/lazy_list.dart';
 import 'package:nativeblog/src/ui/components/post_tile.dart';
@@ -16,10 +19,13 @@ class Browse extends StatefulWidget {
   _BrowseState createState() => _BrowseState();
 }
 
-class _BrowseState extends State<Browse> with TickerProviderStateMixin, WidgetsBindingObserver {
+class _BrowseState extends State<Browse>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   TabController tabCntrl;
-
+  int activeMenuIndex;
   Offset hideOffset;
+  List<String> tabs;
+  bool hideTab;
 
   @override
   dispose() {
@@ -31,13 +37,24 @@ class _BrowseState extends State<Browse> with TickerProviderStateMixin, WidgetsB
   @override
   void initState() {
     tabCntrl = TabController(vsync: this, length: 7);
+    activeMenuIndex = 0;
+    hideTab = false;
     WidgetsBinding.instance.addObserver(this);
+    tabs = [
+      'Rekomendasi',
+      'Teknologi',
+      'Olahraga',
+      'Kesehatan',
+      'Hiburan',
+      'Showbiz',
+      'Fashion'
+    ];
+
     super.initState();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-
     super.didChangeAppLifecycleState(state);
   }
 
@@ -49,174 +66,105 @@ class _BrowseState extends State<Browse> with TickerProviderStateMixin, WidgetsB
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final browseContent = initbrowseContent();
     return Scaffold(
       appBar: AppBar(
-        title: Title(title: 'Nativeblog', child: Text('NativeBlog', style: theme.textTheme.title.copyWith(fontSize: 23.0),), color: Colors.white,),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(NativeBlogIcons.magnifier),
-            tooltip: 'search for article',
-            onPressed: () =>
-                showSearch(context: context, delegate: PostSearchDelegated()),
-          )
-        ],
-        bottom: TabBar(
+        title: Title(
+          title: 'Nativeblog',
+          child: Text(
+            'NativeBlog',
+            style: theme.textTheme.title.copyWith(fontSize: 23.0),
+          ),
+          color: Colors.white,
+        ),
+        actions: <Widget>[SearchButton()],
+        bottom: !hideTab ? TabBar(
           controller: tabCntrl,
           isScrollable: true,
-          tabs: <Widget>[
-            Tab(
-              text: 'Rekomendasi',
-            ),
-            Tab(
-              text: 'Teknologi',
-            ),
-            Tab(
-              text: 'Olahraga',
-            ),
-            Tab(
-              text: 'Kesehatan',
-            ),
-            Tab(
-              text: 'Hiburan',
-            ),
-            Tab(
-              text: 'Showbiz',
-            ),
-            Tab(
-              text: 'Fashion',
-            ),
-          ],
-        ),
+          tabs: tabs.map((it) => Tab(text: it)).toList(),
+        ) : null,
       ),
-      body: SafeArea(
-          child: LazyList(
-            initPageNumber: 1,
-            commandResults: sl.get<AppManager>().updateArticlesCmd.results,
-            dataBuilder: (context, data, type) {
-              return type == ListItemType.list
-                  ? PostTile(article: data)
-                  : PostCard(article: data);
-            },
-            shimmerBuilder: (context, type) {
-              return type == ListItemType.list
-                  ? PostTile.shimmer
-                  : PostCard.shimmer;
-            },
-            onMore: (page) async => sl.get<AppManager>().pageArticleCmd(page),
-            onRefresh: () async => sl.get<AppManager>().prefetchCmd(false),
-            itemTypeLayout: (index) {
-              return index % 4 != 2 ? ListItemType.list : ListItemType.card;
-            },
-          )),
+      body: SafeArea(child: browseContent.values.elementAt(activeMenuIndex)),
       bottomNavigationBar: BottomNavigationBar(
           fixedColor: Theme.of(context).primaryColor,
           type: BottomNavigationBarType.fixed,
-          items: <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-                icon: Icon(NativeBlogIcons.home), title: Text('Blog')),
-            BottomNavigationBarItem(
-                icon: Icon(NativeBlogIcons.film_play), title: Text('Video')),
-            BottomNavigationBarItem(
-                icon: Icon(NativeBlogIcons.earth), title: Text('Update')),
-            BottomNavigationBarItem(
-                icon: Icon(NativeBlogIcons.bullhorn), title: Text('Info')),
-            BottomNavigationBarItem(
-                icon: Icon(NativeBlogIcons.user), title: Text('Me'))
-          ]),
+          currentIndex: activeMenuIndex,
+          onTap: updateBrowseContent,
+          items: browseContent.keys.toList()),
     );
+  }
+
+  void updateBrowseContent(int index) {
+    setState(() {
+      hideTab = index != 0 ? true : false;
+      activeMenuIndex = index;
+    });
   }
 }
 
-//TODO: move to another file
+Map<BottomNavigationBarItem, Widget> initbrowseContent() {
+  final Map<BottomNavigationBarItem, Widget> browseContent =
+      <BottomNavigationBarItem, Widget>{};
+  final blogNavItem = BottomNavigationBarItem(
+      icon: Icon(NativeBlogIcons.home), title: Text('Blog'));
+  final videoNavItem = BottomNavigationBarItem(
+      icon: Icon(NativeBlogIcons.film_play), title: Text('Video'));
+  final snsNavItem = BottomNavigationBarItem(
+      icon: Icon(NativeBlogIcons.earth), title: Text('Linimasa'));
+  final notifNavItem = BottomNavigationBarItem(
+      icon: Icon(NativeBlogIcons.bullhorn), title: Text('Notification'));
+  final profileNavItem = BottomNavigationBarItem(
+      icon: Icon(NativeBlogIcons.user), title: Text('Me'));
 
-class PostSearchDelegated extends SearchDelegate<Post> {
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return <Widget>[
-      query.isEmpty
-          ? IconButton(
-              tooltip: 'Voice Search',
-              icon: const Icon(Icons.mic),
-              onPressed: () {
-                query = 'TODO: implement voice input';
-              },
-            )
-          : IconButton(
-              tooltip: 'Clear',
-              icon: const Icon(Icons.clear),
-              onPressed: () {
-                query = '';
-                showSuggestions(context);
-              },
-            ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      tooltip: 'Back',
-      icon: AnimatedIcon(
-        icon: AnimatedIcons.menu_arrow,
-        progress: transitionAnimation,
-      ),
-      onPressed: () {
-        close(context, null);
-      },
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    return Center(
-      child: Text('No result'),
-    );
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    return _SuggestionList(
-      query: 'bisa',
-      onSelected: (query) {},
-      suggestions: ['bisa coba', 'bisa saja', 'bisa pasti', 'bisa'],
-    );
-  }
-}
-
-class _SuggestionList extends StatelessWidget {
-  const _SuggestionList({this.suggestions, this.query, this.onSelected});
-
-  final List<String> suggestions;
-  final String query;
-  final ValueChanged<String> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return ListView.builder(
-      itemCount: suggestions.length,
-      itemBuilder: (BuildContext context, int i) {
-        final String suggestion = suggestions[i];
-        return ListTile(
-          leading: query.isEmpty ? const Icon(Icons.history) : const Icon(null),
-          title: RichText(
-            text: TextSpan(
-              text: suggestion.substring(0, query.length),
-              style:
-                  theme.textTheme.subhead.copyWith(fontWeight: FontWeight.bold),
-              children: <TextSpan>[
-                TextSpan(
-                  text: suggestion.substring(query.length),
-                  style: theme.textTheme.subhead,
-                ),
-              ],
-            ),
+  browseContent[blogNavItem] = LazyList(
+    initPageNumber: 1,
+    primary: true,
+    commandResults: sl.get<AppManager>().updateArticlesCmd.results,
+    dataBuilder: (context, data, type) {
+      return type == ListItemType.list
+          ? PostTile(article: data)
+          : PostCard(article: data);
+    },
+    shimmerBuilder: (context, type) {
+      return type == ListItemType.list ? PostTile.shimmer : PostCard.shimmer;
+    },
+    onMore: (page) async => sl.get<AppManager>().pageArticleCmd(page),
+    onRefresh: () async => sl.get<AppManager>().prefetchCmd(false),
+    itemTypeLayout: (index) {
+      return index % 4 != 2 ? ListItemType.list : ListItemType.card;
+    },
+  );
+  browseContent[videoNavItem] = LazyList(
+    initPageNumber: 1,
+    commandResults: sl.get<AppManager>().updateVideosCmd.results,
+    dataBuilder: (context, data, type) {
+      print(data.toJson());
+      return Container(
+        padding: EdgeInsets.only(bottom: 8),
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(bottom: BorderSide(color: Colors.grey[300]))
           ),
-          onTap: () {
-            onSelected(suggestion);
-          },
-        );
-      },
-    );
-  }
+          child: VideoTile(
+            title: data.title,
+            thumbnail: data.thumbnails.medium.url,
+            channelName: data.channelTitle,
+            publishedAt: data.publishedAt,
+          ),
+        ),
+      );
+    },
+    shimmerBuilder: (context, type) {
+      return VideoTile.shimmer;
+    },
+    onMore: (page) async => sl.get<AppManager>().updateVideosCmd(),
+    onRefresh: () async => sl.get<AppManager>().updateVideosCmd(),
+    itemTypeLayout: (index) => ListItemType.card,
+  );
+  browseContent[snsNavItem] = Center(child: Text('Linimasa Container'));
+  browseContent[notifNavItem] = Center(child: Text('Notifikasi Container'));
+  browseContent[profileNavItem] = Center(child: Text('Profile Container'));
+  return browseContent;
 }

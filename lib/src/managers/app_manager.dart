@@ -24,6 +24,8 @@ abstract class AppManager {
   // RxCommand<String,
 
   RxCommand<int, int> pageArticleCmd;
+
+  RxCommand<int, int> pageVideoCmd;
 }
 
 class AppManagerImpl implements AppManager {
@@ -59,7 +61,7 @@ class AppManagerImpl implements AppManager {
 
     updateVideosCmd = RxCommand.createAsyncNoParam(() async {
       youtube.SearchListResponse searchResult = await video.search.list('snippet', channelId: channelId);
-      return searchResult.items.map((s) => s.snippet);
+      return searchResult.items.map((s) => s.snippet).toList();
     });
 
     updateArticlesCmd = RxCommand.createAsyncNoParam(() async {
@@ -124,4 +126,7 @@ class AppManagerImpl implements AppManager {
 
   @override
   RxCommand<void, List<youtube.SearchResultSnippet>> updateVideosCmd;
+
+  @override
+  RxCommand<int, int> pageVideoCmd;
 }

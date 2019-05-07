@@ -1,5 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/blogger/v3.dart';
+import 'package:nativeblog/src/ui/icons.dart';
+
+class SearchButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(NativeBlogIcons.magnifier),
+      tooltip: 'search for content',
+      onPressed: () =>
+          showSearch(context: context, delegate: PostSearchDelegated()),
+    );
+  }
+}
+
 
 class PostSearchDelegated extends SearchDelegate<Post> {
   @override

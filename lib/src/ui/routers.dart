@@ -8,7 +8,6 @@ import 'package:nativeblog/src/ui/screens/browse.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:nativeblog/src/ui/screens/detail.dart';
 import 'package:rx_widgets/rx_widgets.dart';
-import 'package:nativeblog/src/ui/ads.dart' as ads;
 
 class AppRouter extends Router with NavigatorObserver {
   String rootPath = "/";
@@ -35,7 +34,6 @@ class AppRouter extends Router with NavigatorObserver {
       Duration transitionDuration = const Duration(milliseconds: 250),
       transitionBuilder}) {
     analytics.setCurrentScreen(screenName: path);
-    // ads.bottomAds?.dispose();
     return super.navigateTo(context, path,
         replace: replace,
         clearStack: clearStack,
@@ -79,10 +77,6 @@ class AppRouter extends Router with NavigatorObserver {
           if (_cached != null) {
             return Detail(_cached);
           }
-
-          ads.fullAds
-            ..load()
-            ..show();
 
           sl.get<AppManager>().displayPostCmd(postId);
           return RxLoader<Post>(

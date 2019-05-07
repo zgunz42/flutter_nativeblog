@@ -11,7 +11,6 @@ import 'package:rx_widgets/rx_widgets.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:nativeblog/src/ui/routers.dart';
 import 'package:share/share.dart';
-import 'package:nativeblog/src/ui/ads.dart' as ads;
 
 
 class Detail extends StatefulWidget {
@@ -30,7 +29,6 @@ class _DetailState extends State<Detail> {
 
   @override
   void didChangeDependencies() {
-    ads.bottomAds..load()..show();
     super.didChangeDependencies();
   }
 
