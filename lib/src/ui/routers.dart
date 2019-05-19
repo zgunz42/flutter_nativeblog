@@ -7,12 +7,14 @@ import 'package:nativeblog/src/service_locator.dart';
 import 'package:nativeblog/src/ui/screens/browse.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:nativeblog/src/ui/screens/detail.dart';
+import 'package:nativeblog/src/ui/screens/loading.dart';
 import 'package:rx_widgets/rx_widgets.dart';
 
 class AppRouter extends Router with NavigatorObserver {
   String rootPath = "/";
   String detailPath = "/details";
   String launchUrlPath = "/open_url";
+  String preloadingPath = "/preloading";
   FirebaseAnalytics analytics;
   dynamic _cached;
 
@@ -46,7 +48,7 @@ class AppRouter extends Router with NavigatorObserver {
     notFoundHandler = Handler(
         handlerFunc: (context, query) {
           Scaffold.of(context)
-              .showSnackBar(SnackBar(content: Text('Router NotFound')));
+              .showSnackBar(SnackBar(content: Text('Page Your Going Into Is Not Available')));
         },
         type: HandlerType.function);
 
@@ -101,6 +103,12 @@ class AppRouter extends Router with NavigatorObserver {
     define(rootPath, handler: Handler(handlerFunc: (context, query) {
       analytics.logAppOpen();
       return Browse();
+    }));
+
+    define(preloadingPath, handler: Handler(handlerFunc: (context, query) {
+      final redirectQuery = query['redirect_url']?.first;
+      final url = redirectQuery != null ? Uri.decodeQueryComponent(redirectQuery) : null;
+      return Loading(redirectUrl: url, process: sl.get<AppManager>().init());
     }));
   }
 }

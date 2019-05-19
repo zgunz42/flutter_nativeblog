@@ -3,9 +3,16 @@ import 'package:rx_command/rx_command.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:googleapis/blogger/v3.dart';
 import 'package:googleapis/youtube/v3.dart' as youtube;
+import 'package:dio/dio.dart' as dio;
 
 abstract class AppManager {
   int get postPerPage;
+
+  List<String> labels;
+
+  String get currentLabel => changeActiveLabel.lastResult;
+
+  RxCommand<String, String> changeActiveLabel;
 
   RxCommand<bool, void> prefetchCmd;
 
@@ -21,16 +28,21 @@ abstract class AppManager {
 
   RxCommand<String, List<Comment>> displayPostCommentCmd;
 
-  // RxCommand<String,
-
   RxCommand<int, int> pageArticleCmd;
 
   RxCommand<int, int> pageVideoCmd;
+
+  Stream<double> init();
 }
 
 class AppManagerImpl implements AppManager {
-  AppManagerImpl({String blogId = '7342017194742683056', String channelId = 'UCepgnl-TtJ8DurHdC6EE22w'}) {
-    BloggerApi blog = BloggerApi(BloggerClient());
+  final String blogId;
+  BloggerApi blog;
+
+  AppManagerImpl(
+      {this.blogId = '7342017194742683056',
+      String channelId = 'UCepgnl-TtJ8DurHdC6EE22w'}) {
+    blog = BloggerApi(BloggerClient());
     youtube.YoutubeApi video = youtube.YoutubeApi(BloggerClient());
     Map<int, PostList> pages = <int, PostList>{};
     Map<String, List<CommentList>> comments = <String, List<CommentList>>{};
@@ -39,28 +51,34 @@ class AppManagerImpl implements AppManager {
     onlineCheckCmd = RxCommand.createSync<bool, bool>((online) => online,
         initialLastResult: true);
     pageArticleCmd = RxCommand.createSync<int, int>((index) => index,
-        initialLastResult: 1, emitInitialCommandResult: true, emitLastResult: true);
+        initialLastResult: 1,
+        emitInitialCommandResult: true,
+        emitLastResult: true);
     displayPostCmd = RxCommand.createAsync((postId) {
       displayPostCommentCmd(postId);
       return blog.posts.get(blogId, postId, fetchImages: true);
     });
+    changeActiveLabel = RxCommand.createSync<String, String>((label) {
+      
+    });
 
     prefetchCmd = RxCommand.createSync((force) {
-      if(force) pages.clear();
+      if (force) pages.clear();
       updateArticlesCmd();
     });
 
     displayPostCommentCmd = RxCommand.createAsync((postId) async {
-      final postComment = await blog.comments.list(blogId, postId, fetchBodies: true, maxResults: 15);
+      final postComment = await blog.comments
+          .list(blogId, postId, fetchBodies: true, maxResults: 15);
       comments.putIfAbsent(postId, () => []);
       comments[postId].add(postComment);
 
       return postComment.items;
     });
 
-
     updateVideosCmd = RxCommand.createAsyncNoParam(() async {
-      youtube.SearchListResponse searchResult = await video.search.list('snippet', channelId: channelId);
+      youtube.SearchListResponse searchResult =
+          await video.search.list('snippet', channelId: channelId);
       return searchResult.items.map((s) => s.snippet).toList();
     });
 
@@ -74,12 +92,13 @@ class AppManagerImpl implements AppManager {
           pageToken = pages[pageIndex].nextPageToken;
         } else {
           pages[pageIndex] = await blog.posts.list(blogId,
-              fetchImages: true, fetchBodies: true, pageToken: pageToken);
+              fetchImages: true,
+              fetchBodies: true,
+              labels: currentLabel,
+              pageToken: pageToken);
         }
         results.addAll(pages[pageIndex].items);
       }
-      print(index);
-      print(results);
       return results;
     },
         emitLastResult: true,
@@ -129,4 +148,32 @@ class AppManagerImpl implements AppManager {
 
   @override
   RxCommand<int, int> pageVideoCmd;
+
+  @override
+  RxCommand<String, String> changeActiveLabel;
+
+  @override
+  List<String> labels;
+
+  @override
+  String get currentLabel => changeActiveLabel.lastResult;
+
+  @override
+
+  /// from 0 to 1
+  Stream<double> init() async* {
+    final bblog = await blog.blogs.get(blogId);
+    yield 0;
+    final client = dio.Dio(dio.BaseOptions(baseUrl: bblog.url));
+    final response = await client.get('feeds/posts/summary',
+        queryParameters: {'alt': 'json', 'max-results': 0},
+        options: dio.Options(responseType: dio.ResponseType.json));
+    List<dynamic> content = List.from(response.data['feed']['category']);
+    labels = content.map((d) => '${d['term']}').toList();
+    yield .5;
+    await Future.delayed(Duration(milliseconds: 200));
+    yield .7;
+    await Future.delayed(Duration(milliseconds: 800));
+    yield 1;
+  }
 }

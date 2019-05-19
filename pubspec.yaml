@@ -11,16 +11,14 @@ dependencies:
     sdk: flutter
   flutter_svg: any
   flutter_html: any
-  firebase_core: 0.3.4
-  # firebase_admob: 0.8.0+4
+  firebase_core: ^0.3.4
   firebase_analytics: 2.1.1+3
-  # flutter_native_admob:
-  #   git: git@github.com:zgunz42/flutter_native_admob.git
   admob_flutter: ^0.2.0
   shared_preferences: any
   cached_network_image: any
   html: any
-  carousel_slider: 1.3.0
+  carousel_slider: ^1.3.0
+  dio: ^2.1.3
   built_collection: '>=2.0.0 <5.0.0'
   built_value: '>=5.5.5 <7.0.0'
   googleapis: ^0.53.0
@@ -43,7 +41,6 @@ dev_dependencies:
   quiver: '>=0.21.0 <3.0.0'
   mockito: '^4.0.0'
   build_runner: ^1.0.0
-  chopper_generator: any
   built_value_generator: ^6.3.0
   flutter_launcher_icons: ^0.7.0
   flutter_test:

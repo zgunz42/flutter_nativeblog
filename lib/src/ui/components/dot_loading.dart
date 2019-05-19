@@ -17,10 +17,10 @@ class DotProgressController {
     _state.pause = true;
   }
 
-  void setPendingTask(int progress) {
+  void setPendingTask(double progress) {
 
     _state.setState(() {
-      _state.pending = (progress / 100).clamp(1, total);
+      _state.pending = (progress).clamp(1, total);
     });
   }
 
@@ -41,11 +41,12 @@ class DotProgressController {
 
 ///indicator
 class DotProgressIndicator extends ProgressIndicator {
-  DotProgressIndicator({@required this.controller, this.height, this.fadeSecond, this.total});
+  DotProgressIndicator({@required this.controller, this.padding, this.height, this.fadeSecond, this.total});
 
   final int total;
   final int fadeSecond;
   final double height;
+  final double padding;
   
   final DotProgressController controller;
 
@@ -74,7 +75,7 @@ class _DotProgressIndicatorState extends State<DotProgressIndicator>
     pause = false;
     total = widget.controller.total ?? widget.total ?? 5;
     controller =
-        AnimationController(duration: Duration(seconds: widget.fadeSecond ?? 5 ), vsync: this);
+        AnimationController(duration: Duration(milliseconds: widget.fadeSecond ?? 500), vsync: this);
     totalFade = controller
         .drive(Tween<double>(begin: 0.15, end: 1.0).chain(_easeInTween));
     if (!isFullyLoaded()) {
@@ -137,6 +138,7 @@ class _DotProgressIndicatorState extends State<DotProgressIndicator>
                   active: finish,
                   fadeOpacitiy: totalFade.value,
                   total: total,
+                  padding: widget.padding,
                   fadeColor: Colors.white),
             );
           },

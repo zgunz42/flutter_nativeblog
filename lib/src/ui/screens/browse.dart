@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:googleapis/blogger/v3.dart';
 import 'package:googleapis/youtube/v3.dart';
@@ -24,7 +26,7 @@ class _BrowseState extends State<Browse>
   TabController tabCntrl;
   int activeMenuIndex;
   Offset hideOffset;
-  List<String> tabs;
+  List<String> tabs = <String>[];
   bool hideTab;
 
   @override
@@ -36,20 +38,17 @@ class _BrowseState extends State<Browse>
 
   @override
   void initState() {
-    tabCntrl = TabController(vsync: this, length: 7);
+    tabs.add('Rekomendasi');
+    tabs.addAll(sl.get<AppManager>().labels);
+    tabCntrl = TabController(vsync: this, length: tabs.length);
+    tabCntrl.addListener(() {
+      if(tabCntrl.indexIsChanging) {
+        sl.get<AppManager>().changeActiveLabel(tabCntrl.index == 0 ? '' : tabs[tabCntrl.index]);
+      }
+    });
     activeMenuIndex = 0;
     hideTab = false;
     WidgetsBinding.instance.addObserver(this);
-    tabs = [
-      'Rekomendasi',
-      'Teknologi',
-      'Olahraga',
-      'Kesehatan',
-      'Hiburan',
-      'Showbiz',
-      'Fashion'
-    ];
-
     super.initState();
   }
 
@@ -78,11 +77,13 @@ class _BrowseState extends State<Browse>
           color: Colors.white,
         ),
         actions: <Widget>[SearchButton()],
-        bottom: !hideTab ? TabBar(
-          controller: tabCntrl,
-          isScrollable: true,
-          tabs: tabs.map((it) => Tab(text: it)).toList(),
-        ) : null,
+        bottom: !hideTab
+            ? TabBar(
+                controller: tabCntrl,
+                isScrollable: true,
+                tabs: tabs.map((it) => Tab(text: it)).toList(),
+              )
+            : null,
       ),
       body: SafeArea(child: browseContent.values.elementAt(activeMenuIndex)),
       bottomNavigationBar: BottomNavigationBar(
@@ -129,7 +130,19 @@ Map<BottomNavigationBarItem, Widget> initbrowseContent() {
       return type == ListItemType.list ? PostTile.shimmer : PostCard.shimmer;
     },
     onMore: (page) async => sl.get<AppManager>().pageArticleCmd(page),
-    onRefresh: () async => sl.get<AppManager>().prefetchCmd(false),
+    onRefresh: () async {
+      Completer completer = Completer();
+      bool lastTime = false;
+      sl.get<AppManager>().prefetchCmd(false);
+      sl.get<AppManager>().updateArticlesCmd.isExecuting.listen((b) async {
+        print('status is $b and last $lastTime');
+        if (!b && !lastTime) {
+          Future.delayed(Duration(seconds: 1), () => completer.complete('refreshed'));
+        }
+        lastTime = b;
+      });
+      return completer.future;
+    },
     itemTypeLayout: (index) {
       return index % 4 != 2 ? ListItemType.list : ListItemType.card;
     },
@@ -144,9 +157,8 @@ Map<BottomNavigationBarItem, Widget> initbrowseContent() {
         color: Theme.of(context).scaffoldBackgroundColor,
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border(bottom: BorderSide(color: Colors.grey[300]))
-          ),
+              color: Colors.white,
+              border: Border(bottom: BorderSide(color: Colors.grey[300]))),
           child: VideoTile(
             title: data.title,
             thumbnail: data.thumbnails.medium.url,
