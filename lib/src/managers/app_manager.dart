@@ -46,7 +46,7 @@ class AppManagerImpl implements AppManager {
     youtube.YoutubeApi video = youtube.YoutubeApi(BloggerClient());
     Map<int, PostList> pages = <int, PostList>{};
     Map<String, List<CommentList>> comments = <String, List<CommentList>>{};
-
+    pages.va
     searchArticleCmd = RxCommand.createSync<String, String>((term) => term);
     onlineCheckCmd = RxCommand.createSync<bool, bool>((online) => online,
         initialLastResult: true);
